@@ -41,7 +41,7 @@
                 @forelse($barangMasuk as $barang)
                     <tr>
                         {{-- Menampilkan kode barang (id_barang_masuk) --}}
-                        <td>{{ $barang->id_barang_masuk }}</td>
+                        <td>{{ $loop->iteration }}</td>
 
                         {{-- Menampilkan nama kategori barang --}}
                         <td>{{ $barang->kategori->nama_kategori_barang }}</td>

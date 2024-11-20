@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\BarangMasuk;
+use App\Models\BarangKeluar;
 use App\Models\KategoriBarang;
 use App\Models\Lokasi;
-use App\Models\Barang; // Tambahkan ini jika ada tabel `barang` untuk stok total
+
 
 class BarangMasukController extends Controller
 {
@@ -17,7 +18,6 @@ class BarangMasukController extends Controller
         return view('admin.barang_masuk.create', compact('kategori_barang', 'lokasi'));
     }
 
-    // Menyimpan data barang masuk
     public function store(Request $request)
     {
         $request->validate([
@@ -88,5 +88,93 @@ class BarangMasukController extends Controller
 
         // Return view dan kirim data barang masuk ke view
         return view('admin.barang_masuk.index', compact('barangMasuk'));
+    }
+    public function edit($id)
+    {
+        $barang = BarangMasuk::with('kategori', 'lokasi')->findOrFail($id);
+        $kategori_barang = KategoriBarang::all();
+        $lokasi = Lokasi::all();
+        return view('admin.barang_masuk.edit', compact('barang', 'kategori_barang', 'lokasi'));
+    }
+
+    // Mengupdate data barang masuk
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'kategori_barang' => 'required|exists:kategori_barang,id_kategori_barang',
+            'nama_barang' => 'required|string|max:255',
+            'sumber_barang' => 'required|string|max:255',
+            'jumlah_masuk' => 'required|integer|min:1',
+            'kondisi' => 'required|string',
+            'lokasi' => 'required|exists:lokasi,id_lokasi',
+            'tanggal_masuk' => 'required|date',
+        ]);
+    
+        $barang = BarangMasuk::findOrFail($id);
+    
+        // Validasi apakah perubahan kategori atau nama menyebabkan stok negatif
+        if (
+            $barang->id_kategori_barang != $request->kategori_barang ||
+            $barang->nama_barang != $request->nama_barang
+        ) {
+            $stokTerkini = BarangMasuk::where('id_kategori_barang', $barang->id_kategori_barang)
+                ->where('nama_barang', $barang->nama_barang)
+                ->sum('jumlah_masuk')
+                - BarangKeluar::where('id_kategori_barang', $barang->id_kategori_barang)
+                ->where('nama_barang', $barang->nama_barang)
+                ->sum('jumlah_keluar');
+    
+            // Hitung stok jika nama/kategori berubah
+            $stokSetelahPerubahan = $stokTerkini - $barang->jumlah_masuk;
+    
+            if ($stokSetelahPerubahan < 0) {
+                return redirect()->back()->withErrors('Tidak dapat mengubah kategori atau nama barang karena stok akan menjadi negatif.');
+            }
+        }
+    
+        // Validasi jumlah masuk untuk stok yang baru
+        $stokTerkini = BarangMasuk::where('id_kategori_barang', $request->kategori_barang)
+            ->where('nama_barang', $request->nama_barang)
+            ->sum('jumlah_masuk')
+            - BarangKeluar::where('id_kategori_barang', $request->kategori_barang)
+            ->where('nama_barang', $request->nama_barang)
+            ->sum('jumlah_keluar');
+    
+        if ($stokTerkini - $barang->jumlah_masuk + $request->jumlah_masuk < 0) {
+            return redirect()->back()->withErrors('Tidak dapat mengubah data karena stok akan menjadi negatif.');
+        }
+    
+        $barang->update([
+            'id_kategori_barang' => $request->kategori_barang,
+            'nama_barang' => $request->nama_barang,
+            'sumber_barang' => $request->sumber_barang,
+            'jumlah_masuk' => $request->jumlah_masuk,
+            'kondisi' => $request->kondisi,
+            'id_lokasi' => $request->lokasi,
+            'tanggal_masuk' => $request->tanggal_masuk,
+        ]);
+    
+        return redirect()->route('barang-masuk.index')->with('success', 'Barang masuk berhasil diperbarui.');
+    }
+    
+
+    // Menghapus barang masuk
+    public function destroy($id)
+    {
+        $barang = BarangMasuk::findOrFail($id);
+        // Hitung stok dl sebelum di hapus
+        $stokTerkini = BarangMasuk::where('id_kategori_barang', $barang->id_kategori_barang)
+            ->where('nama_barang', $barang->nama_barang)
+            ->sum('jumlah_masuk')
+            - BarangKeluar::where('id_kategori_barang', $barang->id_kategori_barang)
+            ->where('nama_barang', $barang->nama_barang)
+            ->sum('jumlah_keluar');
+
+        if ($stokTerkini - $barang->jumlah_masuk < 0) {
+            return redirect()->back()->withErrors('Tidak dapat menghapus barang karena stok akan menjadi negatif.');
+        }
+        $barang->delete();
+
+        return redirect()->route('barang-masuk.index')->with('success', 'Barang masuk berhasil dihapus.');
     }
 }
