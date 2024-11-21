@@ -48,7 +48,7 @@
             <tbody>
                 @forelse ($barangKeluar as $item)
                     <tr>
-                        <td>{{ $loop->iteration }}</td>
+                        <td>{{ ($barangKeluar->currentPage() - 1) * $barangKeluar->perPage() + $loop->iteration }}</td>
                         <td>{{ $item->kategori->nama_kategori_barang }}</td>
                         <td>{{ $item->nama_barang }}</td>
                         <td>{{ $item->jumlah_keluar }}</td>

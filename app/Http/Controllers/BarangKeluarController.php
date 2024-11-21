@@ -124,7 +124,11 @@ class BarangKeluarController extends Controller
         'id_kategori_barang' => $request->kategori_barang,
         'nama_barang' => $request->nama_barang,
         'jumlah_keluar' => $request->jumlah_keluar,
+        'kondisi' => $request->kondisi,
+        'id_lokasi' => $request->lokasi,
         'tanggal_keluar' => $request->tanggal_keluar,
+        'nama_penanggungjawab' => $request->nama_penanggungjawab,
+        'tanggal_exp' => Carbon::parse($request->tanggal_keluar)->addYears(3),
     ]);
 
     return redirect()->route('barang-keluar.index')->with('success', 'Barang keluar berhasil diperbarui.');
