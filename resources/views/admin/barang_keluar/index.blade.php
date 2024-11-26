@@ -12,7 +12,8 @@
     <header>
         {{-- <h1>Admin Panel</h1>
         <!-- Tambahkan navigasi atau elemen header lainnya jika perlu -->
-    </header> --}}
+    </header> --}}<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+
 
     <div class="container">
         <h2>Daftar Barang Keluar</h2>

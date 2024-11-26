@@ -63,7 +63,6 @@
                     <option value="Baru" {{ $barang->kondisi == 'Baru' ? 'selected' : '' }}>Baru</option>
                     <option value="Rusak" {{ $barang->kondisi == 'Rusak' ? 'selected' : '' }}>Rusak</option>
                     <option value="Diperbaiki" {{ $barang->kondisi == 'Diperbaiki' ? 'selected' : '' }}>Diperbaiki</option>
-                    <option value="Baik" {{ $barang->kondisi == 'Baik' ? 'selected' : '' }}>Baik</option>
                 </select>
             </div>
 

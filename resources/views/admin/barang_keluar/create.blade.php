@@ -59,18 +59,27 @@
         <form action="{{ route('barang-keluar.store') }}" method="POST">
             @csrf
             <div class="mb-3">
-                <label for="kategori_barang" class="form-label">Kategori Barang</label>
-                <select name="kategori_barang" id="kategori_barang" class="form-control" required>
-                    <option value="">-- Pilih Kategori --</option>
-                    @foreach($kategori_barang as $kategori)
-                    <option value="{{ $kategori->id_kategori_barang }}">{{ $kategori->nama_kategori_barang }}</option>
-                    @endforeach
+                <label for="kategori_barang" >Kategori Barang</label>
+                <select id="kategori_barang" name="kategori_barang" class="form-control">
+                    <option value="" disabled selected>-- Pilih Kategori --</option>
+                    @foreach($barangMasuk->unique('id_kategori_barang') as $barang)
+                    <option value="{{ $barang->id_kategori_barang }}">
+                        {{ $barang->kategori->nama_kategori_barang }}
+                    </option>
+                @endforeach
                 </select>
             </div>
 
-            <div class="mb-3">
-                <label for="nama_barang" class="form-label">Nama Barang</label>
-                <input type="text" name="nama_barang" id="nama_barang" class="form-control" required>
+            <div class="form-group">
+                <label for="nama_barang">Nama Barang</label>
+                <select id="nama_barang" name="nama_barang" class="form-control" disabled>
+                    <option value="" disabled selected>Pilih Nama Barang</option>
+                    @foreach($barangMasuk as $barang)
+                        <option value="{{ $barang->nama_barang }}" data-kategori="{{ $barang->id_kategori_barang }}">
+                            {{ $barang->nama_barang }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
 
             <div class="mb-3">
@@ -120,5 +129,28 @@
     <footer>
         <p>&copy; {{ date('Y') }} SD Islam Tompokersan Lumajang</p>
     </footer>
+    <script>
+        // Ambil elemen dropdown kategori dan nama barang
+        const kategoriDropdown = document.getElementById('kategori_barang');
+        const namaBarangDropdown = document.getElementById('nama_barang');
+    
+        // Event listener untuk ketika kategori barang berubah
+        kategoriDropdown.addEventListener('change', function () {
+            const selectedKategori = this.value; // Ambil nilai kategori yang dipilih
+    
+            // Reset dropdown nama barang
+            namaBarangDropdown.value = "";
+            namaBarangDropdown.disabled = false;
+    
+            // Filter nama barang berdasarkan kategori yang dipilih
+            Array.from(namaBarangDropdown.options).forEach(option => {
+                if (option.dataset.kategori == selectedKategori || option.value == "") {
+                    option.style.display = "block"; // Tampilkan opsi
+                } else {
+                    option.style.display = "none"; // Sembunyikan opsi
+                }
+            });
+        });
+    </script>
 </body>
 </html>

@@ -115,7 +115,7 @@ class BarangMasukController extends Controller
         // Validasi apakah perubahan kategori atau nama menyebabkan stok negatif
         if (
             $barang->id_kategori_barang != $request->kategori_barang ||
-            $barang->nama_barang != $request->nama_barang
+            $barang->nama_barang!= $request->nama_barang
         ) {
             $stokTerkini = BarangMasuk::where('id_kategori_barang', $barang->id_kategori_barang)
                 ->where('nama_barang', $barang->nama_barang)

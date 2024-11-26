@@ -18,6 +18,16 @@
                 {{ session('success') }}
             </div>
         @endif
+        {{-- Pesan error setelah melakukan tindakan --}}
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         {{-- Tombol untuk menambah barang baru --}}
         <a href="{{ route('barang-masuk.create') }}" class="btn btn-primary mb-3">Tambah Barang Masuk</a>

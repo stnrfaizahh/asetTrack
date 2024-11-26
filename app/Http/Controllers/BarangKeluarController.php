@@ -13,10 +13,14 @@ class BarangKeluarController extends Controller
 {
     public function create()
     {
-        $kategori_barang = KategoriBarang::all();
+        $barangMasuk = BarangMasuk::select('id_kategori_barang', 'nama_barang', 'id_lokasi')
+            ->distinct()
+            ->with('kategori') // Ambil data relasi kategori
+            ->get();
+            
         $lokasi = Lokasi::all();
 
-        return view('admin.barang_keluar.create', compact('kategori_barang', 'lokasi'));
+        return view('admin.barang_keluar.create', compact('barangMasuk', 'lokasi'));
     }
 
     // Menyimpan data barang keluar
@@ -24,8 +28,8 @@ class BarangKeluarController extends Controller
     {
         $request->validate([
             'kategori_barang' => 'required|exists:kategori_barang,id_kategori_barang',
-            'nama_barang' => 'required|string',
-            'jumlah_keluar' => 'required|integer',
+            'nama_barang' => 'required|exists:barang_masuk,nama_barang',
+            'jumlah_keluar' => 'required|integer|min:1',
             'kondisi' => 'required',
             'lokasi' => 'required|exists:lokasi,id_lokasi',
             'tanggal_keluar' => 'required|date',
@@ -41,7 +45,12 @@ class BarangKeluarController extends Controller
         }
 
 
-        $totalStok = $barangMasuk->sum('jumlah_masuk');
+        $totalStok = BarangMasuk::where('id_kategori_barang', $request->kategori_barang)
+        ->where('nama_barang', $request->nama_barang)
+        ->sum('jumlah_masuk') 
+        - BarangKeluar::where('id_kategori_barang', $request->kategori_barang)
+        ->where('nama_barang', $request->nama_barang)
+        ->sum('jumlah_keluar');
 
         // Cek apakah stok cukup
         if ($totalStok < $request->jumlah_keluar) {
@@ -62,9 +71,7 @@ class BarangKeluarController extends Controller
             'nama_penanggungjawab' => $request->nama_penanggungjawab,
         ]);
 
-        // // Update stok
-        // $barangMasuk->jumlah_masuk -= $request->jumlah_keluar;
-        // $barangMasuk->save();
+       
 
         return redirect()->route('barang-keluar.index')->with('success', 'Barang keluar berhasil ditambahkan dan stok diperbarui.');
     }
@@ -87,52 +94,52 @@ class BarangKeluarController extends Controller
 
     // Mengupdate data barang keluar
     public function update(Request $request, $id)
-{
-    $request->validate([
-        'kategori_barang' => 'required|exists:kategori_barang,id_kategori_barang',
-        'nama_barang' => 'required|string|max:255',
-        'jumlah_keluar' => 'required|integer|min:1',
-        'tanggal_keluar' => 'required|date',
-    ]);
+    {
+        $request->validate([
+            'kategori_barang' => 'required|exists:kategori_barang,id_kategori_barang',
+            'nama_barang' => 'required|string|max:255',
+            'jumlah_keluar' => 'required|integer|min:1',
+            'tanggal_keluar' => 'required|date',
+        ]);
 
-    $barangKeluar = BarangKeluar::findOrFail($id);
+        $barangKeluar = BarangKeluar::findOrFail($id);
 
-    // Periksa apakah kategori dan nama barang sesuai dengan data barang masuk
-    $barangMasuk = BarangMasuk::where('id_kategori_barang', $request->kategori_barang)
-        ->where('nama_barang', $request->nama_barang)
-        ->first();
+        // Periksa apakah kategori dan nama barang sesuai dengan data barang masuk
+        $barangMasuk = BarangMasuk::where('id_kategori_barang', $request->kategori_barang)
+            ->where('nama_barang', $request->nama_barang)
+            ->first();
 
-    if (!$barangMasuk) {
-        return redirect()->back()->withErrors('Kategori atau nama barang tidak ditemukan pada data barang masuk.');
+        if (!$barangMasuk) {
+            return redirect()->back()->withErrors('Kategori atau nama barang tidak ditemukan pada data barang masuk.');
+        }
+
+        // Hitung stok saat ini berdasarkan data barang masuk dan barang keluar
+        $stokTersedia = BarangMasuk::where('id_kategori_barang', $request->kategori_barang)
+            ->where('nama_barang', $request->nama_barang)
+            ->sum('jumlah_masuk')
+            - BarangKeluar::where('id_kategori_barang', $request->kategori_barang)
+            ->where('nama_barang', $request->nama_barang)
+            ->sum('jumlah_keluar');
+
+        // Periksa apakah jumlah keluar yang diubah melebihi stok tersedia
+        if ($stokTersedia + $barangKeluar->jumlah_keluar - $request->jumlah_keluar < 0) {
+            return redirect()->back()->withErrors('Jumlah keluar melebihi stok yang tersedia.');
+        }
+
+        // Update data barang keluar
+        $barangKeluar->update([
+            'id_kategori_barang' => $request->kategori_barang,
+            'nama_barang' => $request->nama_barang,
+            'jumlah_keluar' => $request->jumlah_keluar,
+            'kondisi' => $request->kondisi,
+            'id_lokasi' => $request->lokasi,
+            'tanggal_keluar' => $request->tanggal_keluar,
+            'nama_penanggungjawab' => $request->nama_penanggungjawab,
+            'tanggal_exp' => Carbon::parse($request->tanggal_keluar)->addYears(3),
+        ]);
+
+        return redirect()->route('barang-keluar.index')->with('success', 'Barang keluar berhasil diperbarui.');
     }
-
-    // Hitung stok saat ini berdasarkan data barang masuk dan barang keluar
-    $stokTersedia = BarangMasuk::where('id_kategori_barang', $request->kategori_barang)
-        ->where('nama_barang', $request->nama_barang)
-        ->sum('jumlah_masuk')
-        - BarangKeluar::where('id_kategori_barang', $request->kategori_barang)
-        ->where('nama_barang', $request->nama_barang)
-        ->sum('jumlah_keluar');
-
-    // Periksa apakah jumlah keluar yang diubah melebihi stok tersedia
-    if ($stokTersedia + $barangKeluar->jumlah_keluar - $request->jumlah_keluar < 0) {
-        return redirect()->back()->withErrors('Jumlah keluar melebihi stok yang tersedia.');
-    }
-
-    // Update data barang keluar
-    $barangKeluar->update([
-        'id_kategori_barang' => $request->kategori_barang,
-        'nama_barang' => $request->nama_barang,
-        'jumlah_keluar' => $request->jumlah_keluar,
-        'kondisi' => $request->kondisi,
-        'id_lokasi' => $request->lokasi,
-        'tanggal_keluar' => $request->tanggal_keluar,
-        'nama_penanggungjawab' => $request->nama_penanggungjawab,
-        'tanggal_exp' => Carbon::parse($request->tanggal_keluar)->addYears(3),
-    ]);
-
-    return redirect()->route('barang-keluar.index')->with('success', 'Barang keluar berhasil diperbarui.');
-}
 
     public function destroy($id)
     {
