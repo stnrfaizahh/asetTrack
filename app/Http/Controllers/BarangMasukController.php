@@ -109,13 +109,13 @@ class BarangMasukController extends Controller
             'lokasi' => 'required|exists:lokasi,id_lokasi',
             'tanggal_masuk' => 'required|date',
         ]);
-    
+
         $barang = BarangMasuk::findOrFail($id);
-    
+
         // Validasi apakah perubahan kategori atau nama menyebabkan stok negatif
         if (
             $barang->id_kategori_barang != $request->kategori_barang ||
-            $barang->nama_barang!= $request->nama_barang
+            $barang->nama_barang != $request->nama_barang
         ) {
             $stokTerkini = BarangMasuk::where('id_kategori_barang', $barang->id_kategori_barang)
                 ->where('nama_barang', $barang->nama_barang)
@@ -123,15 +123,20 @@ class BarangMasukController extends Controller
                 - BarangKeluar::where('id_kategori_barang', $barang->id_kategori_barang)
                 ->where('nama_barang', $barang->nama_barang)
                 ->sum('jumlah_keluar');
-    
-            // Hitung stok jika nama/kategori berubah
+
             $stokSetelahPerubahan = $stokTerkini - $barang->jumlah_masuk;
-    
+
             if ($stokSetelahPerubahan < 0) {
                 return redirect()->back()->withErrors('Tidak dapat mengubah kategori atau nama barang karena stok akan menjadi negatif.');
             }
+
+            // Jika kategori atau nama barang berubah, buat kode barang baru
+            $kodeBarangBaru = $this->generateBarangMasukId($request);
+        } else {
+            // Jika tidak berubah, tetap gunakan kode barang lama
+            $kodeBarangBaru = $barang->kode_barang;
         }
-    
+
         // Validasi jumlah masuk untuk stok yang baru
         $stokTerkini = BarangMasuk::where('id_kategori_barang', $request->kategori_barang)
             ->where('nama_barang', $request->nama_barang)
@@ -139,12 +144,14 @@ class BarangMasukController extends Controller
             - BarangKeluar::where('id_kategori_barang', $request->kategori_barang)
             ->where('nama_barang', $request->nama_barang)
             ->sum('jumlah_keluar');
-    
+
         if ($stokTerkini - $barang->jumlah_masuk + $request->jumlah_masuk < 0) {
             return redirect()->back()->withErrors('Tidak dapat mengubah data karena stok akan menjadi negatif.');
         }
-    
+
+        // Update data barang masuk
         $barang->update([
+            'kode_barang' => $kodeBarangBaru,
             'id_kategori_barang' => $request->kategori_barang,
             'nama_barang' => $request->nama_barang,
             'sumber_barang' => $request->sumber_barang,
@@ -153,10 +160,10 @@ class BarangMasukController extends Controller
             'id_lokasi' => $request->lokasi,
             'tanggal_masuk' => $request->tanggal_masuk,
         ]);
-    
+
         return redirect()->route('barang-masuk.index')->with('success', 'Barang masuk berhasil diperbarui.');
     }
-    
+
 
     // Menghapus barang masuk
     public function destroy($id)

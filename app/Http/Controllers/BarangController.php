@@ -34,6 +34,10 @@ class BarangController extends Controller
             return $barang;
         });
 
+        $stokBarang = $stokBarang->sortBy(function ($barang){
+            return $barang->kategori->nama_kategori_barang;
+        });
+
         return view('admin.barang.index', compact('stokBarang'));
     }
 }

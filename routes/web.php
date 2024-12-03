@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BarangMasukController;
 use App\Http\Controllers\BarangKeluarController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\LokasiController;
@@ -24,7 +25,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('barang-keluar', BarangKeluarController::class);
     Route::get('/barang', [BarangController::class, 'index']);
     Route::resource('kategori', KategoriController::class);
-    Route::resource('lokasi' ,LokasiController::class);
+    Route::resource('lokasi', LokasiController::class);
     // Route::get('barang', function () {
     //     return view('index');
     // });

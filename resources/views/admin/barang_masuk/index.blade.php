@@ -39,7 +39,7 @@
                     <th>No</th>
                     <th>Kategori Barang</th>
                     <th>Nama Barang</th>
-                    <th>Sumber Barang</th>
+                    <th>Sumber Dana</th>
                     <th>Jumlah Masuk</th>
                     <th>Kondisi</th>
                     <th>Lokasi</th>

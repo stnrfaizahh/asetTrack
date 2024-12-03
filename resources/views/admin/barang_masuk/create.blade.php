@@ -45,7 +45,7 @@
 
             {{-- Sumber Barang --}}
             <div class="form-group">
-                <label for="sumber_barang">Sumber Barang</label>
+                <label for="sumber_barang">Sumber Dana</label>
                 <input type="text" name="sumber_barang" id="sumber_barang" class="form-control" value="{{ old('sumber_barang') }}" required>
             </div>
 

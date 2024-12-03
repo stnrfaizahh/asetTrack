@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tambah Barang Keluar</title>
-    <!-- Link ke CSS eksternal jika ada -->
+
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <style>
-        /* Styling untuk alert error */
+     
         .alert {
             padding: 15px;
             border-radius: 5px;
@@ -43,7 +43,7 @@
                 {{ session('error') }}
             </div>
         @endif
-         <!-- Menampilkan pesan error -->
+
          @if ($errors->any())
          <div class="alert alert-danger">
             <span class="icon">⚠️</span>

@@ -13,7 +13,7 @@ class BarangKeluarController extends Controller
 {
     public function create()
     {
-        $barangMasuk = BarangMasuk::select('id_kategori_barang', 'nama_barang', 'id_lokasi')
+        $barangMasuk = BarangMasuk::select('id_kategori_barang', 'nama_barang')
             ->distinct()
             ->with('kategori') // Ambil data relasi kategori
             ->get();
@@ -73,7 +73,7 @@ class BarangKeluarController extends Controller
 
        
 
-        return redirect()->route('barang-keluar.index')->with('success', 'Barang keluar berhasil ditambahkan dan stok diperbarui.');
+        return redirect()->route('barang-keluar.index')->with('success', 'Barang keluar berhasil ditambahkan');
     }
     public function index()
     {
@@ -148,4 +148,16 @@ class BarangKeluarController extends Controller
 
         return redirect()->route('barang-keluar.index')->with('success', 'Barang keluar berhasil dihapus.');
     }
+    
+    public function getNamaBarangKeluar(Request $request)
+{
+    // Ambil nama barang unik berdasarkan kategori barang
+    $namaBarang = BarangMasuk::where('id_kategori_barang', $request->kategori_id)
+        ->select('nama_barang') // Pilih kolom nama_barang saja
+        ->distinct() // Hilangkan duplikasi
+        ->get();
+
+    return response()->json($namaBarang);
+}
+
 }
