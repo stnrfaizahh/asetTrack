@@ -112,10 +112,10 @@
                 <input type="date" name="tanggal_keluar" id="tanggal_keluar" class="form-control" required>
             </div>
 
-            {{-- <div class="mb-3">
-                <label for="tanggal_exp" class="form-label">Tanggal Expired</label>
-                <input type="date" name="tanggal_exp" id="tanggal_exp" class="form-control">
-            </div> --}}
+            <div class="mb-3">
+                <label for="masa_pakai" class="form-label">Masa Pakai (bulan)</label>
+                <input type="number" name="masa_pakai" id="masa_pakai" class="form-control">
+            </div>
 
             <div class="mb-3">
                 <label for="nama_penanggungjawab" class="form-label">Penanggung Jawab</label>

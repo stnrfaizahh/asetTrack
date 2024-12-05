@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('jumlah_keluar');
             $table->string('kondisi');
             $table->date('tanggal_keluar');
+            $table->integer('masa_pakai');
             $table->date('tanggal_exp');
             $table->string('nama_penanggungjawab');
             $table->timestamps();

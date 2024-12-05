@@ -17,6 +17,7 @@ class BarangKeluar extends Model
         'kondisi',
         'id_lokasi',
         'tanggal_keluar',
+        'masa_pakai',
         'tanggal_exp',
         'nama_penanggungjawab'
     ];

@@ -33,6 +33,7 @@ class BarangKeluarController extends Controller
             'kondisi' => 'required',
             'lokasi' => 'required|exists:lokasi,id_lokasi',
             'tanggal_keluar' => 'required|date',
+            'masa_pakai' => 'required|integer|min:1',
             'nama_penanggungjawab' => 'required|string',
         ]);
         // cek barang apa tersedia di tabel barang masuk
@@ -57,7 +58,7 @@ class BarangKeluarController extends Controller
             return redirect()->back()->with('error', 'Jumlah barang keluar melebihi stok yang tersedia.');
         }
 
-        $tanggalExp = Carbon::parse($request->tanggal_keluar)->addYears(3);
+        $tanggalExp = Carbon::parse($request->tanggal_keluar)->addMonths((int)$request->masa_pakai);
 
         // Simpan data barang keluar
         BarangKeluar::create([
@@ -67,6 +68,7 @@ class BarangKeluarController extends Controller
             'kondisi' => $request->kondisi,
             'id_lokasi' => $request->lokasi,
             'tanggal_keluar' => $request->tanggal_keluar,
+            'masa_pakai' => $request->masa_pakai,
             'tanggal_exp' => $tanggalExp,
             'nama_penanggungjawab' => $request->nama_penanggungjawab,
         ]);
@@ -100,6 +102,7 @@ class BarangKeluarController extends Controller
             'nama_barang' => 'required|string|max:255',
             'jumlah_keluar' => 'required|integer|min:1',
             'tanggal_keluar' => 'required|date',
+            'masa_pakai' => 'required|integer|min:1',
         ]);
 
         $barangKeluar = BarangKeluar::findOrFail($id);
@@ -134,8 +137,9 @@ class BarangKeluarController extends Controller
             'kondisi' => $request->kondisi,
             'id_lokasi' => $request->lokasi,
             'tanggal_keluar' => $request->tanggal_keluar,
+            'masa_pakai' => $request->masa_pakai,
             'nama_penanggungjawab' => $request->nama_penanggungjawab,
-            'tanggal_exp' => Carbon::parse($request->tanggal_keluar)->addYears(3),
+            'tanggal_exp' => Carbon::parse($request->tanggal_keluar)->addMonths((int)$request->masa_pakai),
         ]);
 
         return redirect()->route('barang-keluar.index')->with('success', 'Barang keluar berhasil diperbarui.');

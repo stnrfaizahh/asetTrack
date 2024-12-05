@@ -79,6 +79,12 @@
             </div>
 
             <div class="mb-3">
+                <label for="masa_pakai" class="form-label"> Masa Pakai (dalam bulan)</label>
+                <input type="number" name="masa_pakai" id="masa_pakai" class="form-control" value="{{ old('masa_pakai', $barangKeluar->masa_pakai) }}" required>
+            </div>
+            
+
+            <div class="mb-3">
                 <label for="nama_penanggungjawab" class="form-label">Penanggung Jawab</label>
                 <input type="text" name="nama_penanggungjawab" id="nama_penanggungjawab" class="form-control" value="{{ $barangKeluar->nama_penanggungjawab }}" required>
             </div>

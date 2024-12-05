@@ -2,48 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Models\BarangMasuk;
 use App\Models\BarangKeluar;
 use App\Models\KategoriBarang;
 use App\Models\Lokasi;
-use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // Hitung total barang masuk
         $totalBarangMasuk = BarangMasuk::sum('jumlah_masuk');
-
-        // Hitung total barang keluar
         $totalBarangKeluar = BarangKeluar::sum('jumlah_keluar');
-
-        // Hitung total kategori barang
-        $totalKategori = KategoriBarang::count();
-
-        // Hitung total lokasi
-        $totalLokasi = Lokasi::count();
-
-        // Ambil data kondisi barang
-        $kondisiBarang = DB::table('barang')
-            ->select('kondisi', DB::raw('COUNT(*) as jumlah'))
+        $jumlahKategori = KategoriBarang::count();
+        $jumlahLokasi=Lokasi::count();
+        
+        $jumlahPerKondisi = BarangMasuk::select('kondisi')
+            ->selectRaw('SUM(jumlah_masuk) as total')
             ->groupBy('kondisi')
-            ->get();
-
-        // Data untuk grafik barang masuk (kelompokkan berdasarkan bulan)
-        $barangMasukPerBulan = BarangMasuk::selectRaw('MONTH(tanggal_masuk) as bulan, SUM(jumlah_masuk) as total')
-            ->groupByRaw('MONTH(tanggal_masuk)')
-            ->orderByRaw('MONTH(tanggal_masuk)')
-            ->get();
-
-        return view('admin.dashboard.index', compact(
-            'totalBarangMasuk',
-            'totalBarangKeluar',
-            'totalKategori',
-            'totalLokasi',
-            'kondisiBarang',
-            'barangMasukPerBulan'
-        ));
+            ->get()
+            ->pluck('total', 'kondisi');
+        
         // Ambil data barang masuk, dan kelompokkan berdasarkan kategori dan nama barang
         $barangMasuk = BarangMasuk::select('id_kategori_barang', 'nama_barang')
             ->selectRaw('SUM(jumlah_masuk) as jumlah_masuk')
@@ -68,6 +47,21 @@ class DashboardController extends Controller
             return $barang;
         });
 
-        return view('dashboard', compact('stokBarang'));
+        $stokBarang = $stokBarang->sortBy(function ($barang) {
+            return $barang->kategori->nama_kategori_barang;
+
+            
+        });
+       
+
+        return view('dashboard', compact(
+            'stokBarang',
+            'totalBarangMasuk',
+            'totalBarangKeluar',
+            'jumlahKategori',
+            'jumlahLokasi',
+            'jumlahPerKondisi'
+            
+        ));
     }
 }
