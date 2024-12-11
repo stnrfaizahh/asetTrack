@@ -33,12 +33,16 @@ class LaporanController extends Controller
         // Ambil data barang yang sesuai dengan periode dan lokasi
         $barangMasuk = BarangMasuk::whereMonth('tanggal_masuk', $request->periode_bulan)
             ->whereYear('tanggal_masuk', $request->periode_tahun)
-            ->where('lokasi', $request->lokasi)
+            ->whereHas('lokasi', function($query) use ($request){
+                $query->where('id_lokasi', $request->lokasi);
+            })
             ->get();
 
         $barangKeluar = BarangKeluar::whereMonth('tanggal_keluar', $request->periode_bulan)
             ->whereYear('tanggal_keluar', $request->periode_tahun)
-            ->where('lokasi', $request->lokasi)
+            ->where('lokasi', function($query) use ($request){
+                $query->where('id_lokasi', $request->lokasi);
+            })
             ->get();
 
         // Kalkulasi stok berdasarkan barang masuk dan barang keluar

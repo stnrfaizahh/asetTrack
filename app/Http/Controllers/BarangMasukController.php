@@ -81,11 +81,24 @@ class BarangMasukController extends Controller
     }
 
 
-    public function index()
+    public function index(Request $request)
     {
         // Ambil semua data barang masuk dari database
         $barangMasuk = BarangMasuk::with(['kategori', 'lokasi'])->get();
 
+        $query = BarangMasuk::with(['kategori', 'lokasi']);
+
+        // Filter pencarian berdasarkan nama barang atau sumber barang
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_barang', 'like', "%{$search}%")
+                  ->orWhere('sumber_barang', 'like', "%{$search}%");
+            });
+        }
+    
+        // Ambil data dengan filter pencarian
+        $barangMasuk = $query->get();
         // Return view dan kirim data barang masuk ke view
         return view('admin.barang_masuk.index', compact('barangMasuk'));
     }
@@ -122,9 +135,9 @@ class BarangMasukController extends Controller
                 ->sum('jumlah_masuk')
                 - BarangKeluar::where('id_kategori_barang', $barang->id_kategori_barang)
                 ->where('nama_barang', $barang->nama_barang)
-                ->sum('jumlah_keluar');
+                ->sum('jumlah_keluar')?? 0;
 
-            $stokSetelahPerubahan = $stokTerkini - $barang->jumlah_masuk;
+            $stokSetelahPerubahan = $stokTerkini - $barang->jumlah_masuk + $request->jumlah_masuk;
 
             if ($stokSetelahPerubahan < 0) {
                 return redirect()->back()->withErrors('Tidak dapat mengubah kategori atau nama barang karena stok akan menjadi negatif.');

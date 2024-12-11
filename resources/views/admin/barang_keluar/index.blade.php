@@ -9,12 +9,6 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-    <header>
-        {{-- <h1>Admin Panel</h1>
-        <!-- Tambahkan navigasi atau elemen header lainnya jika perlu -->
-    </header> --}}<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-
-
     <div class="container">
         <h2>Daftar Barang Keluar</h2>
         
@@ -28,6 +22,41 @@
         <!-- Tombol untuk menambah barang keluar -->
         <div class="mb-3">
             <a href="{{ route('barang-keluar.create') }}" class="btn btn-primary">Tambah Barang Keluar</a>
+            <a href="{{ route('barang-keluar.export-pdf', request()->all()) }}" class="btn btn-danger">Export PDF</a>
+
+        <!-- Form Filter -->
+        <form action="{{ route('barang-keluar.index') }}" method="GET" class="mb-3">
+            <div class="row">
+                <div class="col-md-3">
+                    <select name="lokasi" class="form-control">
+                        <option value="">Pilih Lokasi</option>
+                        @foreach ($lokasi as $loc)
+                            <option value="{{ $loc->id_lokasi }}" {{ request('lokasi') == $loc->id_lokasi ? 'selected' : '' }}>
+                                {{ $loc->nama_lokasi }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="number" name="tahun" class="form-control" placeholder="Tahun" value="{{ request('tahun') }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="bulan" class="form-control">
+                        <option value="">Pilih Bulan</option>
+                        @for ($i = 1; $i <= 12; $i++)
+                            <option value="{{ $i }}" {{ request('bulan') == $i ? 'selected' : '' }}>
+                                {{ DateTime::createFromFormat('!m', $i)->format('F') }}
+                            </option>
+                        @endfor
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                    <a href="{{ route('barang-keluar.index') }}" class="btn btn-secondary">Reset</a>
+                </div>
+            </div>
+        </form>
+
         </div>
 
         <!-- Tabel Daftar Barang Keluar -->
@@ -85,4 +114,15 @@
         <p>&copy; {{ date('Y') }} Sekolah XYZ</p>
     </footer>
 </body>
+
+<script>
+    document.getElementById('exportPdfBtn').addEventListener('click', function() {
+        document.getElementById('filterForm').classList.remove('d-none');
+    });
+
+    document.getElementById('cancelFilterBtn').addEventListener('click', function() {
+        document.getElementById('filterForm').classList.add('d-none');
+    });
+</script>
+
 </html>

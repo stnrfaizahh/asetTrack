@@ -46,6 +46,9 @@ class LokasiController extends Controller
         ]);
 
         $lokasi = Lokasi::findOrFail($id);
+        if ($lokasi->barangMasuk()->exists() || $lokasi->barangKeluar()->exists()) {
+            return redirect()->route('lokasi.index')->with('error', 'Lokasi ini tidak dapat diedit karena sudah digunakan dalam transaksi.');
+        }
         $lokasi->update($request->all());
         return redirect()->route('lokasi.index')->with('success', 'Lokasi berhasil diperbarui.');
     }
@@ -53,6 +56,9 @@ class LokasiController extends Controller
     public function destroy($id)
     {
         $lokasi = Lokasi::findOrFail($id);
+        if ($lokasi->barangMasuk()->exists() || $lokasi->barangKeluar()->exists()) {
+            return redirect()->route('lokasi.index')->with('error', 'Lokasi ini tidak dapat dihapus karena sudah digunakan dalam transaksi.');
+        }
         $lokasi->delete();
         return redirect()->route('lokasi.index')->with('success', 'Lokasi berhasil dihapus.');
     }

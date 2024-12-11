@@ -8,6 +8,7 @@ use App\Models\BarangMasuk;
 use App\Models\KategoriBarang;
 use App\Models\Lokasi;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BarangKeluarController extends Controller
 {
@@ -17,7 +18,7 @@ class BarangKeluarController extends Controller
             ->distinct()
             ->with('kategori') // Ambil data relasi kategori
             ->get();
-            
+
         $lokasi = Lokasi::all();
 
         return view('admin.barang_keluar.create', compact('barangMasuk', 'lokasi'));
@@ -42,20 +43,20 @@ class BarangKeluarController extends Controller
             ->get();
 
         if ($barangMasuk->isEmpty()) {
-            return redirect()->back()->with('error', 'Barang yang dimaksud tidak ditemukan di stok masuk.');
+            return redirect()->back()->with('error', 'Barang yang dimaksud tidak ditemukan di stok masuk.')->withInput();
         }
 
 
         $totalStok = BarangMasuk::where('id_kategori_barang', $request->kategori_barang)
-        ->where('nama_barang', $request->nama_barang)
-        ->sum('jumlah_masuk') 
-        - BarangKeluar::where('id_kategori_barang', $request->kategori_barang)
-        ->where('nama_barang', $request->nama_barang)
-        ->sum('jumlah_keluar');
+            ->where('nama_barang', $request->nama_barang)
+            ->sum('jumlah_masuk')
+            - BarangKeluar::where('id_kategori_barang', $request->kategori_barang)
+            ->where('nama_barang', $request->nama_barang)
+            ->sum('jumlah_keluar');
 
         // Cek apakah stok cukup
         if ($totalStok < $request->jumlah_keluar) {
-            return redirect()->back()->with('error', 'Jumlah barang keluar melebihi stok yang tersedia.');
+            return redirect()->back()->with('error', 'Jumlah barang keluar melebihi stok yang tersedia.')->withInput();
         }
 
         $tanggalExp = Carbon::parse($request->tanggal_keluar)->addMonths((int)$request->masa_pakai);
@@ -73,17 +74,38 @@ class BarangKeluarController extends Controller
             'nama_penanggungjawab' => $request->nama_penanggungjawab,
         ]);
 
-       
+
 
         return redirect()->route('barang-keluar.index')->with('success', 'Barang keluar berhasil ditambahkan');
     }
-    public function index()
+    public function index(Request $request)
     {
-        // Ambil semua data barang keluar dengan relasi kategori dan lokasi
-        $barangKeluar = BarangKeluar::with(['kategori', 'lokasi'])->paginate(10); // Misalnya menggunakan pagination 10 data per halaman
+        $query = BarangKeluar::with(['kategori', 'lokasi']);
 
-        return view('admin.barang_keluar.index', compact('barangKeluar'));
+        // Filter berdasarkan lokasi
+        if ($request->filled('lokasi')) {
+            $query->where('id_lokasi', $request->lokasi);
+        }
+
+        // Filter berdasarkan tahun keluar/expired
+        if ($request->filled('tahun')) {
+            $query->whereYear('tanggal_keluar', $request->tahun)
+                ->orWhereYear('tanggal_exp', $request->tahun);
+        }
+        // Filter berdasarkan bulan keluar/expired
+        if ($request->filled('bulan')) {
+            $query->whereMonth('tanggal_keluar', $request->bulan)
+                ->orWhereMonth('tanggal_exp', $request->bulan);
+        }
+
+        // Pagination untuk hasil query
+        $barangKeluar = $query->paginate(15);
+        // Ambil data lokasi untuk dropdown
+        $lokasi = Lokasi::all();
+
+        return view('admin.barang_keluar.index', compact('barangKeluar', 'lokasi'));
     }
+
 
     public function edit($id)
     {
@@ -152,16 +174,45 @@ class BarangKeluarController extends Controller
 
         return redirect()->route('barang-keluar.index')->with('success', 'Barang keluar berhasil dihapus.');
     }
-    
+
     public function getNamaBarangKeluar(Request $request)
-{
-    // Ambil nama barang unik berdasarkan kategori barang
-    $namaBarang = BarangMasuk::where('id_kategori_barang', $request->kategori_id)
-        ->select('nama_barang') // Pilih kolom nama_barang saja
-        ->distinct() // Hilangkan duplikasi
-        ->get();
+    {
+        // Ambil nama barang unik berdasarkan kategori barang
+        $namaBarang = BarangMasuk::where('id_kategori_barang', $request->kategori_id)
+            ->select('nama_barang') // Pilih kolom nama_barang saja
+            ->distinct() // Hilangkan duplikasi
+            ->get();
 
-    return response()->json($namaBarang);
-}
+        return response()->json($namaBarang);
+    }
 
+    public function exportPdf(Request $request)
+    {
+        // Ambil data berdasarkan filter
+        $query = BarangKeluar::with(['kategori', 'lokasi']);
+
+        if ($request->filled('lokasi')) {
+            $query->where('id_lokasi', $request->lokasi);
+        }
+
+        if ($request->filled('tahun')) {
+            $query->whereYear('tanggal_keluar', $request->tahun)
+                ->orWhereYear('tanggal_exp', $request->tahun);
+        }
+
+        if ($request->filled('bulan')) {
+            $query->whereMonth('tanggal_keluar', $request->bulan)
+                ->orWhereMonth('tanggal_exp', $request->bulan);
+        }
+
+        // Ambil data barang keluar sesuai filter
+        $barangKeluar = $query->get();
+       
+
+        // Render view sebagai HTML
+        $pdf = Pdf::loadView('admin.barang_keluar.pdf', ['barangKeluar' =>$barangKeluar,]);
+
+        // Unduh file PDF
+        return $pdf->stream('daftar-barang-keluar.pdf');
+    }
 }

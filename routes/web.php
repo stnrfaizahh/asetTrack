@@ -19,9 +19,12 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 
 Route::middleware('auth')->group(function () {
     Route::resource('barang-masuk', BarangMasukController::class);
-    Route::resource('barang-keluar', BarangKeluarController::class);
+    Route::resource('barang-keluar', BarangKeluarController::class)->except(['show']);
+    Route::get('/barang-keluar/export-pdf', [BarangKeluarController::class, 'exportPdf'])->name('barang-keluar.export-pdf');
+
     Route::resource('kategori', KategoriController::class);
     Route::resource('lokasi', LokasiController::class);
+    
   
 
     // Route::middleware('auth')->group(function () {

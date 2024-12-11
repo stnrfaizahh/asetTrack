@@ -50,6 +50,9 @@ class KategoriController extends Controller
     public function destroy($id)
     {
         $kategori = KategoriBarang::findOrFail($id);
+        if ($kategori->barangMasuk()->exists() || $kategori->barangKeluar()->exists()) {
+            return redirect()->route('kategori.index')->with('error', 'Kategori ini tidak dapat dihapus karena sudah digunakan dalam transaksi.');
+        }
         $kategori->delete();
         return redirect()->route('kategori.index')->with('success', 'Kategori berhasil dihapus.');
     }

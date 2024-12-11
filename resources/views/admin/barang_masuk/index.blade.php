@@ -6,6 +6,7 @@
     <title>Daftar Barang Masuk</title>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}"> {{-- Include CSS --}}
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    
 </head>
 
 <body>
@@ -30,8 +31,14 @@
         @endif
 
         {{-- Tombol untuk menambah barang baru --}}
+        <div class="d-flex justify-content-between mb-3">
         <a href="{{ route('barang-masuk.create') }}" class="btn btn-primary mb-3">Tambah Barang Masuk</a>
 
+        <form action="{{ route('barang-masuk.index') }}" method="GET" class="form-inline">
+            <input type="text" name="search" class="form-control mr-2" placeholder="Cari barang..." value="{{ request('search') }}">
+            <button type="submit" class="btn btn-secondary">Cari</button>
+        </form>
+        </div>
         {{-- Tabel daftar barang masuk --}}
         <table class="table table-bordered">
             <thead>
