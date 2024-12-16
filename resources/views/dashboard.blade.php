@@ -85,6 +85,12 @@
             <h1 class="mb-4">Detail Stok Barang</h1>
             <link rel="stylesheet" href="{{ asset('css/app.css') }}"> {{-- Include CSS --}}
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+        <form action="{{ route('dashboard') }}" method="GET" class="form-inline">
+            <input type="text" name="search" class="form-control mr-2" placeholder="Cari barang..." value="{{ request('search') }}">
+            <button type="submit" class="btn btn-secondary">Cari</button>
+        </form>
+
         </div>
         
         <table class="table table-bordered table-striped table-hover" style="border: 1px solid #333;">

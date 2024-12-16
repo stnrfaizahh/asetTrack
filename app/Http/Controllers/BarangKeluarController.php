@@ -80,12 +80,23 @@ class BarangKeluarController extends Controller
     }
     public function index(Request $request)
     {
+        $barangKeluar = BarangKeluar::with(['kategori', 'lokasi'])->get();
+        
         $query = BarangKeluar::with(['kategori', 'lokasi']);
 
         // Filter berdasarkan lokasi
         if ($request->filled('lokasi')) {
             $query->where('id_lokasi', $request->lokasi);
         }
+         // Filter pencarian berdasarkan nama barang atau sumber barang
+         if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_barang', 'like', "%{$search}%")
+                  ->orWhere('id_kategori_barang', 'like', "%{$search}%");
+            });
+        }
+        $barangKeluar = $query->get();
 
         // Filter berdasarkan tahun keluar/expired
         if ($request->filled('tahun')) {

@@ -24,6 +24,10 @@
             <a href="{{ route('barang-keluar.create') }}" class="btn btn-primary">Tambah Barang Keluar</a>
             <a href="{{ route('barang-keluar.export-pdf', request()->all()) }}" class="btn btn-danger">Export PDF</a>
 
+            <form action="{{ route('barang-keluar.index') }}" method="GET" class="form-inline">
+                <input type="text" name="search" class="form-control mr-2" placeholder="Cari barang..." value="{{ request('search') }}">
+                <button type="submit" class="btn btn-secondary">Cari</button>
+            </form>
         <!-- Form Filter -->
         <form action="{{ route('barang-keluar.index') }}" method="GET" class="mb-3">
             <div class="row">

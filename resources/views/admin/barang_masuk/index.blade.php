@@ -29,8 +29,7 @@
                 </ul>
             </div>
         @endif
-
-        {{-- Tombol untuk menambah barang baru --}}
+        
         <div class="d-flex justify-content-between mb-3">
         <a href="{{ route('barang-masuk.create') }}" class="btn btn-primary mb-3">Tambah Barang Masuk</a>
 
